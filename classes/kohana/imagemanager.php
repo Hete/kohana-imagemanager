@@ -7,7 +7,6 @@ abstract class Kohana_ImageManager {
      */
     protected static $_instance;
     protected $_config;
-    
     public static $base_path;
 
     public static function instance() {
@@ -22,7 +21,7 @@ abstract class Kohana_ImageManager {
         if (!is_writable($this->_config['base_path'])) {
             throw new Kohana_Exception("Image folder (:path) folder not writable.", array(":path" => $this->_config['base_path']));
         }
-        
+
         ImageManager::$base_path = $this->_config['base_path'];
     }
 
@@ -71,12 +70,12 @@ abstract class Kohana_ImageManager {
      * Store images from the $_FILES['<html name attribute>'] variable
      */
     public function store_files($files, $parent_table = null, $parent_id = null) {
-
         foreach ($files["tmp_name"] as $filepath) {
             if ($filepath === "")
                 continue;
 
             // $filepath = $files["tmp_name"][$key];
+
             ImageManager::instance()->store($filepath, $parent_table, $parent_id);
             unset($filepath);
         }
@@ -95,8 +94,6 @@ abstract class Kohana_ImageManager {
                         ->where('parent_table', '=', $parent_table)
                         ->and_where('parent_id', '=', $parent_id);
     }
-
-   
 
     //////////////////
     // Delete functions
