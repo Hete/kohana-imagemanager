@@ -5,18 +5,20 @@ It stores images a similar way git does : it uses the sha1 as name.
 It is designed to work closely to models so I have backed it in database.
 
 To store an image :
-ImageManager::instance()->store('/path/to/an/image', '<table_name>', '<primary_key>');
+
+    ImageManager::instance()->store('/path/to/an/image', '<table_name>', '<primary_key>');
 
 To store multiple images :
-ImageManager::instance()->store_files($_FILES['<name attribute>'], '<table_name>', '<primary_key>');
+
+    ImageManager::instance()->store_files($_FILES['<name attribute>'], '<table_name>', '<primary_key>');
 
 To retreive images associated to a model :
 
-$images = ImageManager::instance()->retreive('<table_name>', '<primary_key>');
+    $images = ImageManager::instance()->retreive('<table_name>', '<primary_key>');
 
-foreach($images->find_all() as $image) {
-    echo $image->path();
-}
+    foreach($images->find_all() as $image) {
+        echo $image->path();
+    }
 
 To delete an image, get its model and delete it or delete it if you have its hash. 
 
