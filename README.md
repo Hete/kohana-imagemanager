@@ -5,30 +5,28 @@ It stores images a similar way git does : it uses the sha1 as name.
 It is designed to work closely to models so I have backed it in database.
 
 To store an image :
-ImageManager::instance()->store('/path/to/an/image', 'event', '<id>');
+ImageManager::instance()->store('/path/to/an/image', '<table_name>', '<primary_key>');
 
 To store multiple images :
-ImageManager::instance()->store_from_files_variable($_FILES['<name attribute>'], 'event', '<id>');
+ImageManager::instance()->store_files($_FILES['<name attribute>'], '<table_name>', '<primary_key>');
 
-To retreive an image (only returns the path) :
-ImageManager::instance()->retreive('<image hash>');
+To retreive images associated to a model :
 
-By setting the the images() method, you can retreive matching images :
+$images = ImageManager::instance()->retreive('<table_name>', '<primary_key>');
 
-class Model_Event {
-
-    public images() {
-        return ORM::factory('image')
-            ->where('parent_id', '=', $this->id)
-            ->and_where('parent_table', '=', 'event');
-    }
-
+foreach($images->find_all() as $image) {
+    echo $image->path();
 }
 
-To delete an image, get its model and delete it.
+To delete an image, get its model and delete it or delete it if you have its hash. 
+
+For security purpose, you may not delete an image by its hash if it is associated with an existing model. I will probably add a force boolean to do so.
+
+ImageManager::instance()->delete('<hash>');
 
 As there is no way to use foreign keys and nothing so far to remove files from the hard drive, I have work on my shoulders !
 
 Things to do :
-- Image deletion ;
-- Upload helper integration for validation in the storing process ;
+- Upload helper integration for validation in the storing process (size, file type, etc);
+- Generic design to store any kind of files;
+- Model relationship
