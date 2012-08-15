@@ -87,28 +87,17 @@ abstract class Kohana_ImageManager {
             }
 
             $validate = Validation::factory($_FILES)
-                    ->rule($name, "Upload::size", array(":value", "0M"))
+                    ->rule($name, "Upload::size", array(":value", $this->_config['max_size']))
+                    ->rule($name, "Upload::not_empty", array(":value"))
                     ->rule($name, "Upload::image", array(":value"));
 
-            if (!$validate->check())
-                throw new Validation_Exception($validate);
-        }
-
-
-
-
-
-
-
-
-        foreach ($_FILES[$name]["tmp_name"] as $filepath) {
-            if ($filepath === "")
-                continue;
-
-            // $filepath = $files["tmp_name"][$key];
-
-            ImageManager::instance()->store($filepath, $parent_table, $parent_id);
-            unset($filepath);
+            if ($validate->check()) {
+                ImageManager::instance()->store($file["tmp_name"], $parent_table, $parent_id);
+                unset($file["tmp_name"]);
+            } else {
+                // Fichier invalide
+                //throw new Validation_Exception($validate);
+            }
         }
     }
 
