@@ -69,8 +69,39 @@ abstract class Kohana_ImageManager {
     /**
      * Store images from the $_FILES['<html name attribute>'] variable
      */
-    public function store_files($files, $parent_table = null, $parent_id = null) {
-        foreach ($files["tmp_name"] as $filepath) {
+    public function store_files($name, $parent_table = null, $parent_id = null) {
+
+        // Validations
+        $file_count = count($_FILES[$name]['name']);
+
+        // On construit un array qu'on valide avec la classe Upload
+        //var_dump($files);
+
+
+        for ($i = 0; $i < $file_count; $i++) {
+
+            $file = array();
+
+            foreach ($_FILES[$name] as $key => $field) {
+                $file[$key] = $field[$i];
+            }
+
+            $validate = Validation::factory($_FILES)
+                    ->rule($name, "Upload::size", array(":value", "0M"))
+                    ->rule($name, "Upload::image", array(":value"));
+
+            if (!$validate->check())
+                throw new Validation_Exception($validate);
+        }
+
+
+
+
+
+
+
+
+        foreach ($_FILES[$name]["tmp_name"] as $filepath) {
             if ($filepath === "")
                 continue;
 
