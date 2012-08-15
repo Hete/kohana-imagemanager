@@ -128,14 +128,14 @@ abstract class Kohana_ImageManager {
         }
 
         // Test de référencement
-        foreach (ORM::factory('image', array('hash' => $hash))->find_all() as $image) {
+        foreach (ORM::factory('image', array('hash' => $hash)) as $image) {
 
             if (!ORM::factory($image->_table_name, $image->pk())->find()) {
                 $image->delete();
             }
         }
 
-        if (ORM::factory('image', array('hash' => $hash))->find_all()->count_all() < 1) {
+        if (ORM::factory('image', array('hash' => $hash))->count_all() < 1) {
             // Aucuns modèles ne référence cette image, elle peut être détruite.
         }
     }
