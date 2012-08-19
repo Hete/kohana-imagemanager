@@ -86,10 +86,10 @@ abstract class Kohana_ImageManager {
                 $file[$key] = $field[$i];
             }
 
-            $validate = Validation::factory($_FILES)
-                    ->rule($name, "Upload::size", array(":value", $this->_config['max_size']))
-                    ->rule($name, "Upload::not_empty", array(":value"))
-                    ->rule($name, "Upload::image", array(":value"));
+            $validate = Validation::factory($_FILES);
+                //->rule($name, "Upload::size", array(":value", $this->_config['max_size']))
+                //->rule($name, "Upload::not_empty", array(":value"))
+                //->rule($name, "Upload::image", array(":value"));
 
             if ($validate->check()) {
                 ImageManager::instance()->store($file["tmp_name"], $parent_table, $parent_id);
