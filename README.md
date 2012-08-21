@@ -8,9 +8,11 @@ To store an image :
 
     ImageManager::instance()->store('/path/to/an/image', '<table_name>', '<primary_key>');
 
-To store multiple images :
+To store multiple images using $_FILES variable (REMEMBER TO NAME THE FIELD WITH [] IN THE HTML FORM !) :
 
-    ImageManager::instance()->store_files($_FILES['<name attribute>'], '<table_name>', '<primary_key>');
+    <input type="file" name="images[]" />
+
+    ImageManager::instance()->store_files('<name attribute>', '<table_name>', '<primary_key>');
 
 To retreive images associated to a model :
 
@@ -24,7 +26,7 @@ To delete an image, get its model and delete it or delete it if you have its has
 
 For security purpose, you may not delete an image by its hash if it is associated with an existing model. I will probably add a force boolean to do so.
 
-ImageManager::instance()->delete('<hash>');
+    ImageManager::instance()->delete('<hash>');
 
 As there is no way to use foreign keys and nothing so far to remove files from the hard drive, I have work on my shoulders !
 
