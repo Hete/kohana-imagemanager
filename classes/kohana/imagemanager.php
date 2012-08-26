@@ -37,17 +37,33 @@ abstract class Kohana_ImageManager {
      * @throws Image_Manager_Invalid_Hash_Exception if hash from file and hash from image_data do not match.
      * @return the corresponding ORM model for this image.
      */
-    public function store($image_path, $parent_table = null, $parent_id = null) {
+    public function store($file, $parent_table = null, $parent_id = null) {
 
-        $hash = sha1_file($image_path);
+
+
+        $validate = Validation::factory($file)
+                ->rule('name', "Upload::not_empty", array(":file"))
+                ->rule('name', "Upload::size", array(":file", $this->_config['max_size']))
+                ->rule('name', "Upload::image", array(":file"))
+                ->bind(':file', $file);
+
+        if (!$validate->check()) {
+            throw new Kohana_Exception("Le fichier :filename n'est pas valide !");
+        }
+
+
+
+        $tmp_name = $file['tmp_name'];
+
+        $hash = sha1_file($tmp_name);
 
         $filename = $this->hash_to_filepath($hash);
 
         if (!$this->image_exists($hash)) {
 
             // On déplace l'image
-            if (!move_uploaded_file($image_path, $filename)) {
-                throw new Kohana_Exception("Image copy from $image_path to $filename has failed !");
+            if (!move_uploaded_file($tmp_name, $filename)) {
+                throw new Kohana_Exception("Image copy from $tmp_name to $filename has failed !");
             }
 
             // Test de validité
@@ -71,6 +87,8 @@ abstract class Kohana_ImageManager {
      */
     public function store_files($name, $parent_table = null, $parent_id = null) {
 
+
+        // On retire les fichiers vides
         // Validations
         $file_count = count($_FILES[$name]['name']);
 
@@ -86,17 +104,9 @@ abstract class Kohana_ImageManager {
                 $file[$key] = $field[$i];
             }
 
-            $validate = Validation::factory($_FILES);
-                //->rule($name, "Upload::size", array(":value", $this->_config['max_size']))
-                //->rule($name, "Upload::not_empty", array(":value"))
-                //->rule($name, "Upload::image", array(":value"));
-
-            if ($validate->check()) {
-                ImageManager::instance()->store($file["tmp_name"], $parent_table, $parent_id);
+            if (Upload::not_empty($file)) {
+                ImageManager::instance()->store($file, $parent_table, $parent_id);
                 unset($file["tmp_name"]);
-            } else {
-                // Fichier invalide
-                //throw new Validation_Exception($validate);
             }
         }
     }
