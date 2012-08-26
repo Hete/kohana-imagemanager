@@ -39,8 +39,6 @@ abstract class Kohana_ImageManager {
      */
     public function store($file, $parent_table = null, $parent_id = null) {
 
-
-
         $validate = Validation::factory($file)
                 ->rule('name', "Upload::not_empty", array(":file"))
                 ->rule('name', "Upload::size", array(":file", $this->_config['max_size']))
@@ -48,10 +46,8 @@ abstract class Kohana_ImageManager {
                 ->bind(':file', $file);
 
         if (!$validate->check()) {
-            throw new Kohana_Exception("Le fichier :filename n'est pas valide !");
+            throw new ORM_Validation_Exception('ImageManager', $validate);
         }
-
-
 
         $tmp_name = $file['tmp_name'];
 

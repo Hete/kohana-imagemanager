@@ -9,7 +9,7 @@ return array(
             'base_path'    => 'images', // Base path where images are stored.
             'hash_function' => 'sha1', // You may select a custon hash function   
         
-            'max_size' => '2M',
+            'max_size' => '1M',
             
         
     ),
