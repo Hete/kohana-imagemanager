@@ -17,10 +17,7 @@ abstract class Kohana_ImageManager {
 
         $this->_config = Kohana::$config->load("imagemanager.$config");
 
-        // Initial tests
-        if (!is_writable($this->_config['base_path'])) {
-            throw new Kohana_Exception("Image folder (:path) folder not writable.", array(":path" => $this->_config['base_path']));
-        }
+       
 
         ImageManager::$base_path = $this->_config['base_path'];
     }
