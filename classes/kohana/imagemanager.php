@@ -9,6 +9,10 @@ abstract class Kohana_ImageManager {
     protected $_config;
     public static $base_path;
 
+    /**
+     *
+     * @return ImageManager 
+     */
     public static function instance() {
         return ImageManager::$_instance ? ImageManager::$_instance : ImageManager::$_instance = new ImageManager();
     }
