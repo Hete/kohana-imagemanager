@@ -11,6 +11,9 @@ abstract class Model_Image_Image extends ORM {
         return Image::factory($this->filepath());
     }
 
+    /**
+     * 
+     */
     public function delete() {
         ImageManager::instance()->delete($this->hash);
         parent::delete();
@@ -21,10 +24,18 @@ abstract class Model_Image_Image extends ORM {
     }
 
     /**
+     *  
+     * @return boolean 
+     */
+    public function file_exists() {
+        return ImageManager::instance()->image_exists($this->hash);
+    }
+
+    /**
      * Returns the path to this image.
      */
     public function filepath() {
-        return  ImageManager::$base_path . "/" . $this->hash;
+        return ImageManager::$base_path . "/" . $this->hash;
     }
 
 }
