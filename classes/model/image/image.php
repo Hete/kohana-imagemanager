@@ -15,6 +15,11 @@ abstract class Model_Image_Image extends ORM {
         ImageManager::instance()->delete($this->hash);
         parent::delete();
     }
+    
+    public function file_exists() {
+        return file_exists($this->filepath());
+        
+    }
 
     /**
      * Returns the path to this image.
