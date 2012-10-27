@@ -7,7 +7,7 @@ abstract class Kohana_ImageManager {
      */
     protected static $_instance;
     protected $_config;
-    public static $base_path;
+    protected $base_path = "images";
 
     /**
      *
@@ -21,9 +21,9 @@ abstract class Kohana_ImageManager {
 
         $this->_config = Kohana::$config->load("imagemanager.$config");
 
-       
 
-        ImageManager::$base_path = $this->_config['base_path'];
+
+        $this->base_path = Arr::get($this->_config, "base_path", "images");
     }
 
     //////////////////////
@@ -38,7 +38,7 @@ abstract class Kohana_ImageManager {
      * @throws Image_Manager_Invalid_Hash_Exception if hash from file and hash from image_data do not match.
      * @return the corresponding ORM model for this image.
      */
-    public function store($file, $parent_table = null, $parent_id = null) {
+    public function store($file) {
 
         $validate = Validation::factory($file)
                 ->rule('name', "Upload::not_empty", array(":file"))
@@ -72,17 +72,16 @@ abstract class Kohana_ImageManager {
 
         $image = ORM::factory('image');
         $image->hash = $hash;
-        $image->parent_id = $parent_id;
-        $image->parent_table = $parent_table;
         $image->save();
 
-        return $hash;
+        return $image;
     }
 
     /**
      * Store images from the $_FILES['<html name attribute>'] variable
+     * @return Model_Image fetchable image model.
      */
-    public function store_files($name, $parent_table = null, $parent_id = null) {
+    public function store_files($name) {
 
 
         // On retire les fichiers vides
@@ -91,7 +90,7 @@ abstract class Kohana_ImageManager {
 
         // On construit un array qu'on valide avec la classe Upload
         //var_dump($files);
-
+        $images = array();
 
         for ($i = 0; $i < $file_count; $i++) {
 
@@ -102,10 +101,12 @@ abstract class Kohana_ImageManager {
             }
 
             if (Upload::not_empty($file)) {
-                ImageManager::instance()->store($file, $parent_table, $parent_id);
+                $images[] = ImageManager::instance()->store($file);
                 unset($file["tmp_name"]);
             }
         }
+
+        return $images;
     }
 
     /////////////////////
@@ -115,6 +116,7 @@ abstract class Kohana_ImageManager {
      * Get a fetchable array of images that belong to a model.
      * @param type $parent_table
      * @param type $parent_id
+     * @return Model_Image
      */
     public function retreive($parent_table = null, $parent_id = null) {
         return ORM::factory('image')
@@ -131,20 +133,9 @@ abstract class Kohana_ImageManager {
      */
     public function delete($hash) {
         if (!$this->image_exists($hash)) {
-            throw new Kohana_Exception(":hash do not exists in images folder !", array(":hash" => $hash));
+            Log::instance()->add(Log::CRITICAL, ":hash do not exists in images folder !", array(":hash" => $hash));
         }
-
-        // Test de référencement
-        foreach (ORM::factory('image', array('hash' => $hash)) as $image) {
-
-            if (!ORM::factory($image->_table_name, $image->pk())->find()) {
-                $image->delete();
-            }
-        }
-
-        if (ORM::factory('image', array('hash' => $hash))->count_all() < 1) {
-            // Aucuns modèles ne référence cette image, elle peut être détruite.
-        }
+        ORM::factory('image', array('hash' => $hash))->delete();
     }
 
     ////////////////////////////

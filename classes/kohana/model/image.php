@@ -1,6 +1,6 @@
 <?php
 
-abstract class Model_Image_Image extends ORM {
+class Kohana_Model_Image extends ORM {
 
     /**
      * Retrieve the Image object associated to this model to apply transformations.
@@ -15,18 +15,10 @@ abstract class Model_Image_Image extends ORM {
      * 
      */
     public function delete() {
-        ImageManager::instance()->delete($this->hash);
+        unlink($this->filepath());
         parent::delete();
     }
-    
-    public function file_exists() {        
-        return ImageManager::instance()->image_exists($this->hash);
-    }
 
-    /**
-     *  
-     * @return boolean 
-     */
     public function file_exists() {
         return ImageManager::instance()->image_exists($this->hash);
     }
@@ -35,7 +27,7 @@ abstract class Model_Image_Image extends ORM {
      * Returns the path to this image.
      */
     public function filepath() {
-        return ImageManager::$base_path . "/" . $this->hash;
+        return ImageManager::instance()->hash_to_filepath($this->hash);
     }
 
 }
