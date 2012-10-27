@@ -9,6 +9,10 @@ abstract class Kohana_ImageManager {
     protected $_config;
     public static $base_path;
 
+    /**
+     * 
+     * @return ImageManager
+     */
     public static function instance() {
         return ImageManager::$_instance ? ImageManager::$_instance : ImageManager::$_instance = new ImageManager();
     }
@@ -127,12 +131,13 @@ abstract class Kohana_ImageManager {
      */
     public function delete($hash) {
         if (!$this->image_exists($hash)) {
-            throw new Kohana_Exception(":hash do not exists in images folder !", array(":hash" => $hash));
+            Log::instance()->add(Log::CRITICAL, ":hash do not exists in images folder !", array(":hash" => $hash));
+            
         }
 
         // Test de référencement
         foreach (ORM::factory('image', array('hash' => $hash)) as $image) {
-
+            // Si non référencé, on détruit l'image.
             if (!ORM::factory($image->_table_name, $image->pk())->find()) {
                 $image->delete();
             }
@@ -140,6 +145,7 @@ abstract class Kohana_ImageManager {
 
         if (ORM::factory('image', array('hash' => $hash))->count_all() < 1) {
             // Aucuns modèles ne référence cette image, elle peut être détruite.
+            unlink($this->hash_to_filepath($hash));
         }
     }
 
