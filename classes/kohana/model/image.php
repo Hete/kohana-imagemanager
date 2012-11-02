@@ -26,8 +26,9 @@ class Kohana_Model_Image extends ORM {
     /**
      * Returns the path to this image.
      */
-    public function filepath() {
-        return ImageManager::instance()->hash_to_filepath($this->hash);
+    public function filepath($default = NULL) {
+        
+        return $this->loaded() ? ImageManager::instance()->hash_to_filepath($this->hash) : $default;
     }
 
 }
