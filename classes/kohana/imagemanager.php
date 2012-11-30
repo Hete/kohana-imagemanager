@@ -38,16 +38,16 @@ abstract class Kohana_ImageManager {
      * @throws Image_Manager_Invalid_Hash_Exception if hash from file and hash from image_data do not match.
      * @return the corresponding ORM model for this image.
      */
-    public function store($file) {
+    public function store($file, $name = 'image') {
 
         $validate = Validation::factory($file)
-                ->rule('name', "Upload::not_empty", array(":file"))
-                ->rule('name', "Upload::size", array(":file", $this->_config['max_size']))
-                ->rule('name', "Upload::image", array(":file"))
+                ->rule($name, "Upload::not_empty", array(":file"))
+                ->rule($name, "Upload::size", array(":file", $this->_config['max_size']))
+                ->rule($name, "Upload::image", array(":file"))
                 ->bind(':file', $file);
 
         if (!$validate->check()) {
-            throw new ORM_Validation_Exception('ImageManager', $validate);
+            throw new Validation_Exception($validate);
         }
 
         $tmp_name = $file['tmp_name'];
@@ -101,7 +101,7 @@ abstract class Kohana_ImageManager {
             }
 
             if (Upload::not_empty($file)) {
-                $images[] = ImageManager::instance()->store($file);
+                $images[] = ImageManager::instance()->store($file, $name);
                 unset($file["tmp_name"]);
             }
         }
