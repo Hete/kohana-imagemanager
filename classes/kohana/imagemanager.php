@@ -36,14 +36,14 @@ abstract class Kohana_ImageManager {
      * @return Model_Image the corresponding ORM model for this image.
      */
     public function store(array $file) {
-
-        // Validation
+        // Validation      
 
         $validate = Validation::factory($file)
-                ->rule("image", "Upload::not_empty", array(":file"))
-                ->rule("image", "Upload::size", array(":file", $this->_config['max_size']))
-                ->rule("image", "Upload::image", array(":file"))
-                ->bind(':file', $file);
+                ->rule("name", "not_empty")
+                ->rule("tmp_name", "not_empty")
+                ->rule("size", "not_empty")
+                ->rule("size", "Upload::size", array($file, $this->_config["max_size"]))
+                ->rule("error", "equals", array(":value", UPLOAD_ERR_OK));
 
         if (!$validate->check()) {
             throw new Validation_Exception($validate);
@@ -55,12 +55,13 @@ abstract class Kohana_ImageManager {
 
         $filename = $this->hash_to_filepath($hash);
 
-        $image = ORM::factory('image');
-        $image->hash = $hash;
+        $image = ORM::factory('image', array("hash" => $hash));
 
-        if ($this->image_exists($hash)) {
+        if ($image->loaded()) {
             return $image;
         }
+
+        $image->hash = $hash;
 
         // On déplace l'image
         if (!move_uploaded_file($tmp_name, $filename)) {
@@ -72,9 +73,6 @@ abstract class Kohana_ImageManager {
             unlink($filename);
             throw new Kohana_Exception("Hash calculated from store parameter and file do not match.");
         }
-
-        echo Debug::vars($image->file_exists());
-        die();
 
         $image->save();
 
@@ -95,7 +93,7 @@ abstract class Kohana_ImageManager {
 
         // On construit un array qu'on valide avec la classe Upload
         $images = ORM::factory("image");
-        
+
         $images->where_open();
 
         $validation_exception = NULL;
