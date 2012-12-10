@@ -18,12 +18,11 @@ abstract class Kohana_ImageManager {
     }
 
     private function __construct($config = 'default') {
-
         $this->_config = Kohana::$config->load("imagemanager.$config");
+    }
 
-
-
-        $this->base_path = Arr::get($this->_config, "base_path", "images");
+    public function config($path, $default = NULL, $delimiter = NULL) {
+        return Arr::path($this->_config, $path, $default, $delimiter);
     }
 
     //////////////////////
@@ -36,13 +35,13 @@ abstract class Kohana_ImageManager {
      * @return Model_Image the corresponding ORM model for this image.
      */
     public function store(array $file) {
-        // Validation      
+        // Validation              
 
         $validate = Validation::factory($file)
                 ->rule("name", "not_empty")
                 ->rule("tmp_name", "not_empty")
                 ->rule("size", "not_empty")
-                ->rule("size", "Upload::size", array($file, $this->_config["max_size"]))
+                ->rule("size", "Upload::size", array($file, $this->config("max_size")))
                 ->rule("error", "equals", array(":value", UPLOAD_ERR_OK));
 
         if (!$validate->check()) {
@@ -63,12 +62,12 @@ abstract class Kohana_ImageManager {
 
         $image->hash = $hash;
 
-        // On déplace l'image
-        if (!move_uploaded_file($tmp_name, $filename)) {
+        if (!Upload::save($file, $hash, $this->config("base_path"))) {
+            // Corrupted download!
             throw new Kohana_Exception("Image copy from $tmp_name to $filename has failed !");
         }
 
-        // Test de validité
+        // Test de validité ultime
         if (sha1_file($filename) !== $hash) {
             unlink($filename);
             throw new Kohana_Exception("Hash calculated from store parameter and file do not match.");
@@ -107,8 +106,12 @@ abstract class Kohana_ImageManager {
             }
 
             try {
-                $images->or_where("id", "=", ImageManager::instance()->store($file, $name)->pk());
-            } catch (ORM_Validation_Exception $ove) {
+                if (Upload::not_empty($file)) {
+                    $images->or_where("id", "=", ImageManager::instance()->store($file, $name)->pk());
+                } else {
+                    $images->or_where("id", "=", NULL);
+                }
+            } catch (Validation_Exception $ove) {
                 if ($validation_exception === NULL) {
                     $validation_exception = $ove;
                 } else {
@@ -119,7 +122,7 @@ abstract class Kohana_ImageManager {
 
         $images->where_close();
 
-        if ($validation_exception instanceof ORM_Validation_Exception) {
+        if ($validation_exception instanceof Validation_Exception) {
             throw $validation_exception;
         }
 
@@ -143,10 +146,8 @@ abstract class Kohana_ImageManager {
     ////////////////////////////
     // Utilities
 
-
-
     public function hash_to_filepath($hash) {
-        return $this->_config['base_path'] . "/$hash";
+        return $this->config("base_path") . DIRECTORY_SEPARATOR . "$hash";
     }
 
     /**
