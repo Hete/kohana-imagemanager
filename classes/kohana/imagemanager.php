@@ -154,7 +154,8 @@ abstract class Kohana_ImageManager {
      * Lookup the database and the files to see if the image exists.
      */
     public function image_exists($hash) {
-        return file_exists($this->hash_to_filepath($hash));
+        $path = $this->hash_to_filepath($hash);
+        return is_file($path);
     }
 
 }
