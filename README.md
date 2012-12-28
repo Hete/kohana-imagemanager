@@ -6,19 +6,24 @@ It is designed to work closely to models so I have backed it in database.
 
 To store an image :
 
-    ImageManager::instance()->store('/path/to/an/image', '<table_name>', '<primary_key>');
+    ImageManager::instance()->store('/path/to/an/image');
 
 To store multiple images using $_FILES variable (REMEMBER TO NAME THE FIELD WITH [] IN THE HTML FORM !) :
 
     <input type="file" name="images[]" />
 
-    ImageManager::instance()->store_files('<name attribute>', '<table_name>', '<primary_key>');
+    ImageManager::instance()->store_files('<name attribute>');
+
+Eventually, 
+
+    ImageManager::instance()->store_files($this->request->post("<whatever name you gave the input>"));
 
 To retreive images associated to a model :
 
-    $images = ImageManager::instance()->retreive('<table_name>', '<primary_key>');
+    $model->add("images", $random_image_model);   
 
-    foreach($images->find_all() as $image) {
+
+    foreach($model->images->find_all() as $image) {
         echo $image->path();
     }
 
@@ -28,9 +33,4 @@ For security purpose, you may not delete an image by its hash if it is associate
 
     ImageManager::instance()->delete('<hash>');
 
-As there is no way to use foreign keys and nothing so far to remove files from the hard drive, I have work on my shoulders !
-
-Things to do :
-- Upload helper integration for validation in the storing process (size, file type, etc);
-- Generic design to store any kind of files;
-- Model relationship
+Build your own model-relationship to protect your images with foreign keys.
