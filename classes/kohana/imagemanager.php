@@ -129,6 +129,16 @@ abstract class Kohana_ImageManager {
         return $file_count > 0 ? $images->find_all() : FALSE;
     }
 
+    /**
+     * Store a single file.
+     * @param type $name
+     * @return Model_Image
+     */
+    public function store_file($name) {
+
+        return Upload::not_empty($_FILES[$name]) ? $this->store($_FILES[$name]) : FALSE;
+    }
+
     //////////////////
     // Delete functions
 
