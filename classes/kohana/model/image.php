@@ -26,8 +26,12 @@ class Kohana_Model_Image extends ORM {
     /**
      * Returns the path to this image.   
      */
-    public function filepath() {
-        return $this->file_exists() ? ImageManager::instance()->hash_to_filepath($this->hash) : ImageManager::instance()->config("fallback_image");
+    public function filepath($fallback = NULL) {
+
+        if ($fallback === NULL) {
+            $fallback = ImageManager::instance()->config("fallback_image");        }
+
+        return $this->file_exists() ? ImageManager::instance()->hash_to_filepath($this->hash) : $fallback;
     }
 
     public function rules() {
