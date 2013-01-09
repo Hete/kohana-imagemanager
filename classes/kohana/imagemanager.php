@@ -34,19 +34,18 @@ abstract class Kohana_ImageManager {
      * @throws ORM_Validation_Exception you must catch that exception.
      * @return Model_Image the corresponding ORM model for this image.
      */
-    public function store(array $file) {
-        // Validation              
+    public function store(array $file, $name = "image") {
+        // Validation     
 
         $validate = Validation::factory($file)
-                ->rule("name", "not_empty")
-                ->rule("tmp_name", "not_empty")
-                ->rule("size", "not_empty")
-                ->rule("size", "Upload::size", array($file, $this->config("max_size")))
-                ->rule("error", "equals", array(":value", UPLOAD_ERR_OK));
+                ->rule($name, "Upload::not_empty", array($file))
+                ->rule($name, "Upload::image", array($file))
+                ->rule($name, "Upload::size", array($file, $this->config("max_size")));
 
         if (!$validate->check()) {
             throw new Validation_Exception($validate);
         }
+
 
         $tmp_name = $file['tmp_name'];
 
@@ -136,7 +135,7 @@ abstract class Kohana_ImageManager {
      */
     public function store_file($name) {
 
-        return Upload::not_empty($_FILES[$name]) ? $this->store($_FILES[$name]) : FALSE;
+        return $this->store($_FILES[$name], $name);
     }
 
     //////////////////
