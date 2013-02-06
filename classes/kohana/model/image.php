@@ -45,7 +45,7 @@ class Kohana_Model_Image extends ORM {
         if ($fallback === NULL) {
             $fallback = ImageManager::instance()->config("fallback_image");
         }
-        return $this->file_exists() ? URL::site(ImageManager::instance()->hash_to_filepath($this->hash)) : $fallback;
+        return $this->file_exists() ? ImageManager::instance()->hash_to_filepath($this->hash) : $fallback;
     }
 
     public function file_exists() {
