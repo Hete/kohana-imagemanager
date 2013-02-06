@@ -1,13 +1,26 @@
 <?php
 
+defined('SYSPATH') or die('No direct script access.');
+
+/**
+ * Image manager core.
+ * 
+ * @package ImageManager
+ * @author Hète.ca Team
+ * @copyright (c) 2013, Hète.ca Inc.
+ */
 abstract class Kohana_ImageManager {
 
     /**
      *
      */
     protected static $_instance;
+
+    /**
+     * Configuration
+     * @var array
+     */
     protected $_config;
-    protected $base_path = "images";
 
     /**
      *

@@ -1,5 +1,14 @@
 <?php
 
+defined('SYSPATH') or die('No direct script access.');
+
+/**
+ * 
+ * @package ImageManager
+ * @category Model
+ * @author Hète.ca Team
+ * @copyright (c) 2013, Hète.ca Inc.
+ */
 class Kohana_Model_Image extends ORM {
 
     /**
@@ -12,26 +21,42 @@ class Kohana_Model_Image extends ORM {
     }
 
     /**
-     * 
+     * Delete the image and its model.
      */
     public function delete() {
         unlink($this->filepath());
         parent::delete();
     }
 
-    public function file_exists() {
+    /**
+     * Tells if the image exists in the filepath.
+     * @return type
+     */
+    public function exists() {
         return ImageManager::instance()->image_exists($this->hash);
+    }
+
+    /**
+     * Get the image path
+     * @param type $fallback
+     * @return type
+     */
+    public function path($fallback = NULL) {
+        if ($fallback === NULL) {
+            $fallback = ImageManager::instance()->config("fallback_image");
+        }
+        return $this->file_exists() ? URL::site(ImageManager::instance()->hash_to_filepath($this->hash)) : $fallback;
+    }
+
+    public function file_exists() {
+        return $this->exists();
     }
 
     /**
      * Returns the path to this image.   
      */
     public function filepath($fallback = NULL) {
-
-        if ($fallback === NULL) {
-            $fallback = ImageManager::instance()->config("fallback_image");        }
-
-        return $this->file_exists() ? ImageManager::instance()->hash_to_filepath($this->hash) : $fallback;
+        return $this->path($fallback);
     }
 
     public function rules() {
