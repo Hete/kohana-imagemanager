@@ -23,14 +23,15 @@ class Kohana_ImageManager {
     protected $_config;
 
     /**
-     *
-     * @return ImageManager 
+     * 
+     * @return ImageManager
      */
     public static function instance() {
         return ImageManager::$_instance ? ImageManager::$_instance : ImageManager::$_instance = new ImageManager();
     }
 
     private function __construct($config = 'default') {
+
         $this->_config = Kohana::$config->load("imagemanager.$config");
     }
 
@@ -58,7 +59,6 @@ class Kohana_ImageManager {
         if (!$validate->check()) {
             throw new Validation_Exception($validate);
         }
-
 
         $tmp_name = $file['tmp_name'];
 
@@ -141,6 +141,9 @@ class Kohana_ImageManager {
         return $file_count > 0 ? $images->find_all() : FALSE;
     }
 
+    /////////////////////
+    // Retreive functions
+
     /**
      * Store a single file.
      * @param type $name
@@ -167,6 +170,8 @@ class Kohana_ImageManager {
 
     ////////////////////////////
     // Utilities
+
+
 
     public function hash_to_filepath($hash) {
         return $this->config("base_path") . DIRECTORY_SEPARATOR . "$hash";
