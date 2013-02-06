@@ -9,7 +9,7 @@ defined('SYSPATH') or die('No direct script access.');
  * @author Hète.ca Team
  * @copyright (c) 2013, Hète.ca Inc.
  */
-abstract class Kohana_ImageManager {
+class Kohana_ImageManager {
 
     /**
      *

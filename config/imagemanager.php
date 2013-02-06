@@ -1,5 +1,7 @@
 <?php
 
+defined('SYSPATH') or die('No direct access allowed.');
+
 return array(
     'default' => array(
         'image_table' => 'images', // You should have an images table in your database

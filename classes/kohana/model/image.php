@@ -3,6 +3,7 @@
 defined('SYSPATH') or die('No direct script access.');
 
 /**
+ * Model for image.
  * 
  * @package ImageManager
  * @category Model
