@@ -12,17 +12,21 @@ defined('SYSPATH') or die('No direct script access.');
 class Kohana_ImageManager {
 
     /**
-     *
+     * Singleton
+     * 
+     * @var ImageManager
      */
     protected static $_instance;
 
     /**
      * Configuration
+     * 
      * @var array
      */
     protected $_config;
 
     /**
+     * Get the instance of ImageManager singleton.
      * 
      * @return ImageManager
      */
@@ -30,11 +34,15 @@ class Kohana_ImageManager {
         return ImageManager::$_instance ? ImageManager::$_instance : ImageManager::$_instance = new ImageManager();
     }
 
-    private function __construct($config = 'default') {
-
-        $this->_config = Kohana::$config->load("imagemanager.$config");
+    private function __construct() {
+        $this->_config = Kohana::$config->load("imagemanager");
     }
 
+    /**
+     * Getter for configuration.
+     * 
+     * @see Arr::path     
+     */
     public function config($path, $default = NULL, $delimiter = NULL) {
         return Arr::path($this->_config, $path, $default, $delimiter);
     }
@@ -48,17 +56,7 @@ class Kohana_ImageManager {
      * @throws ORM_Validation_Exception you must catch that exception.
      * @return Model_Image the corresponding ORM model for this image.
      */
-    public function store(array $file, $name = "image") {
-        // Validation     
-
-        $validate = Validation::factory($file)
-                ->rule($name, "Upload::not_empty", array($file))
-                ->rule($name, "Upload::image", array($file))
-                ->rule($name, "Upload::size", array($file, $this->config("max_size")));
-
-        if (!$validate->check()) {
-            throw new Validation_Exception($validate);
-        }
+    public function store(array $file, $max_width = NULL, $max_height = NULL, $exact = FALSE, $max_size = NULL) {
 
         $tmp_name = $file['tmp_name'];
 
@@ -68,25 +66,19 @@ class Kohana_ImageManager {
 
         $image = ORM::factory('image', array("hash" => $hash));
 
-        if ($image->loaded()) {
-            return $image;
-        }
-
         $image->hash = $hash;
+
+        try {
+            $image->save(Model_Image::get_image_file_validation($file, $max_width, $max_height, $exact, $max_size));
+        } catch (ORM_Validation_Exception $ove) {
+            throw $ove;
+        }
 
         if (!Upload::save($file, $hash, $this->config("base_path"))) {
             // Corrupted download!
-            throw new Kohana_Exception("Image copy from $tmp_name to $filename has failed !");
+            $this->delete($hash);
+            throw new Kohana_Exception("Image copy from $tmp_name to $filename has failed ! Image was deleted.");
         }
-
-        // Test de validité ultime
-        if (sha1_file($filename) !== $hash) {
-            unlink($filename);
-            throw new Kohana_Exception("Hash calculated from store parameter and file do not match.");
-        }
-
-        $image->save();
-
 
         return $image;
     }
@@ -94,9 +86,9 @@ class Kohana_ImageManager {
     /**
      * Store images from the $_FILES['<html name attribute>'] variable
      * @throw ORM_Validation_Exception
-     * @return Model_Image fetchable image model.
+     * @return Model_Image|FALSE fetchable image model or FALSE if $FILES[$name] was empty.
      */
-    public function store_files($name) {
+    public function store_files($name, $max_width = NULL, $max_height = NULL, $exact = FALSE, $max_size = NULL) {
 
         // On retire les fichiers vides
         // Validations
@@ -113,17 +105,17 @@ class Kohana_ImageManager {
 
             $file = array();
 
+            // Parse fields
             foreach ($_FILES[$name] as $key => $field) {
                 $file[$key] = $field[$i];
             }
 
             try {
-                if (Upload::not_empty($file)) {
-                    $images->or_where("id", "=", ImageManager::instance()->store($file, $name)->pk());
-                } else {
-                    $images->or_where("id", "=", NULL);
-                }
-            } catch (Validation_Exception $ove) {
+
+                $image = ImageManager::instance()->store($file, $max_width, $max_height, $exact, $max_size);
+
+                $images->or_where("id", "=", $image->pk());
+            } catch (ORM_Validation_Exception $ove) {
                 if ($validation_exception === NULL) {
                     $validation_exception = $ove;
                 } else {
@@ -134,55 +126,56 @@ class Kohana_ImageManager {
 
         $images->where_close();
 
-        if ($validation_exception instanceof Validation_Exception) {
+        // Throw the merged exception
+        if ($validation_exception !== NULL) {
             throw $validation_exception;
         }
 
         return $file_count > 0 ? $images->find_all() : FALSE;
     }
 
-    /////////////////////
-    // Retreive functions
-
-    /**
-     * Store a single file.
-     * @param type $name
-     * @return Model_Image
-     */
-    public function store_file($name) {
-
-        return $this->store($_FILES[$name], $name);
-    }
-
     //////////////////
     // Delete functions
 
     /**
-     * Delete an unreferenced ($parent_id and $parent_table must be null) image corresponding to the $hash.
-     * Only works if the image is not referenced in the database or if $force is true.
+     * Delete an image given its hash.
      */
     public function delete($hash) {
-        if (!$this->image_exists($hash)) {
-            Log::instance()->add(Log::CRITICAL, ":hash do not exists in images folder !", array(":hash" => $hash));
-        }
         ORM::factory('image', array('hash' => $hash))->delete();
     }
 
     ////////////////////////////
     // Utilities
 
-
-
+    /**
+     * Take an hash and return its filepath.
+     * 
+     * @param string $hash
+     * @return string
+     */
     public function hash_to_filepath($hash) {
-        return $this->config("base_path") . DIRECTORY_SEPARATOR . "$hash";
+        return rtrim($this->config("base_path"), "/") . DIRECTORY_SEPARATOR . "$hash";
     }
 
     /**
-     * Lookup the database and the files to see if the image exists.
+     * Lookup in files if the specified hash exists.
+     * 
+     * @param string $hash
+     * @return boolean wheter the file exists or not
+     */
+    public function exists($hash) {
+        $path = $this->hash_to_filepath($hash);
+        return (bool) is_file($path);
+    }
+
+    /**
+     * 
+     * @deprecated 
+     * @param type $hash
+     * @return type
      */
     public function image_exists($hash) {
-        $path = $this->hash_to_filepath($hash);
-        return is_file($path);
+        return $this->exists($hash);
     }
 
 }

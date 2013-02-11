@@ -1,5 +1,7 @@
 <?php
 
+defined('SYSPATH') or die('No direct script access.');
+
 /**
  * Tests for ImageManager. 
  * 
@@ -12,7 +14,7 @@
 class ImageManager_Test extends Unittest_TestCase {
 
     public function test_store() {
-        
+        ImageManager::instance()->store(array());
     }
 
     public function test_delete() {

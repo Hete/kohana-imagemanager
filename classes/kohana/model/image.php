@@ -6,27 +6,47 @@ defined('SYSPATH') or die('No direct script access.');
  * Model for image.
  * 
  * @package ImageManager
- * @category Model
+ * @category Models
  * @author Hète.ca Team
  * @copyright (c) 2013, Hète.ca Inc.
  */
 class Kohana_Model_Image extends ORM {
 
     /**
-     * Retrieve the Image object associated to this model to apply transformations.
-     * The image object is defined in the image module.
-     * DO NOT OVERRIDE THE ORIGINAL IMAGE !
+     * 
+     * @param array $file
+     * @param integer $max_width
+     * @param integer $max_height
+     * @param boolean $exact
+     * @param string $max_size
+     * @return Validation
      */
-    public function image() {
-        return Image::factory($this->filepath());
+    public static function get_image_file_validation(array $file, $max_width = NULL, $max_height = NULL, $exact = FALSE, $max_size = NULL) {
+
+        if ($max_size === NULL) {
+            $max_size = ImageManager::instance()->config("max_size");
+        }
+
+        return Validation::factory($file)
+                        ->rule("name", "not_empty")
+                        ->rule("tmp_name", "not_empty")
+                        ->rule("error", "not_empty")
+                        ->rule("size", "not_empty")
+                        ->rule("name", "Upload::not_empty", array(":file"))
+                        ->rule("name", "Upload::image", array(":file", $max_width, $max_height, $exact))
+                        ->rule("name", "Upload::size", array(":file", $max_size))
+                        ->bind(":file", $file);
     }
 
     /**
      * Delete the image and its model.
      */
     public function delete() {
-        unlink($this->filepath());
-        parent::delete();
+        // Unlink only if the file exists
+        if ($this->exists()) {
+            unlink($this->path());
+        }
+        return parent::delete();
     }
 
     /**
@@ -64,8 +84,6 @@ class Kohana_Model_Image extends ORM {
         return array(
             "hash" => array(
                 array("not_empty"),
-                // sha1 matches its file
-                array("equals", array(":value", sha1_file($this->filepath())))
             ),
         );
     }
