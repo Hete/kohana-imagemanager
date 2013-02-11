@@ -92,10 +92,12 @@ class Kohana_ImageManager {
 
         $files = array();
 
-        // Parsing $files
-        foreach ($_FILES[$name] as $field => $list_of_values) {
-            foreach ($list_of_values as $index => $value) {
-                $files[$index][$field] = $value;
+        // Parsing $files if multiple
+        if (!Arr::is_assoc($_FILES[$name])) {
+            foreach ($_FILES[$name] as $field => $list_of_values) {
+                foreach ($list_of_values as $index => $value) {
+                    $files[$index][$field] = $value;
+                }
             }
         }
 
