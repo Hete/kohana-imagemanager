@@ -86,13 +86,34 @@ class Kohana_ImageManager {
     /**
      * Store images from the $_FILES['<html name attribute>'] variable
      * @throw ORM_Validation_Exception
-     * @return Model_Image|FALSE fetchable image model or FALSE if $FILES[$name] was empty.
+     * @return Model_Image fetchable image model or FALSE if $FILES[$name] was empty.
      */
     public function store_files($name, $max_width = NULL, $max_height = NULL, $exact = FALSE, $max_size = NULL) {
 
+        $files = array();
+
+        // Parsing $files
+        foreach ($_FILES[$name] as $field => $list_of_values) {
+            foreach ($list_of_values as $index => $value) {
+                $files[$index][$field] = $value;
+            }
+        }
+
         // On retire les fichiers vides
         // Validations
-        $file_count = count($_FILES[$name]['name']);
+        $file_count = count($files);
+
+        // Unsetting empty files
+        foreach ($files as $key => $values) {
+            if ($values["error"] === UPLOAD_ERR_NO_FILE) {
+                unset($files[$key]);
+            }
+        }
+
+        // No images uploaded
+        if (!Valid::not_empty($files)) {
+            return ORM::factory("image", NULL);
+        }
 
         // On construit un array qu'on valide avec la classe Upload
         $images = ORM::factory("image");
@@ -101,14 +122,7 @@ class Kohana_ImageManager {
 
         $validation_exception = NULL;
 
-        for ($i = 0; $i < $file_count; $i++) {
-
-            $file = array();
-
-            // Parse fields
-            foreach ($_FILES[$name] as $key => $field) {
-                $file[$key] = $field[$i];
-            }
+        foreach ($files as $file) {
 
             try {
 
