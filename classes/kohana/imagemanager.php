@@ -101,13 +101,9 @@ class Kohana_ImageManager {
             }
         }
 
-        // On retire les fichiers vides
-        // Validations
-        $file_count = count($files);
-
         // Unsetting empty files
         foreach ($files as $key => $values) {
-            if ($values["error"] === UPLOAD_ERR_NO_FILE) {
+            if (!Upload::not_empty($values)) {
                 unset($files[$key]);
             }
         }
@@ -128,7 +124,7 @@ class Kohana_ImageManager {
 
             try {
 
-                $image = ImageManager::instance()->store($file, $max_width, $max_height, $exact, $max_size);
+                $image = $this->store($file, $max_width, $max_height, $exact, $max_size);
 
                 $images->or_where("id", "=", $image->pk());
             } catch (ORM_Validation_Exception $ove) {
@@ -147,7 +143,7 @@ class Kohana_ImageManager {
             throw $validation_exception;
         }
 
-        return $file_count > 0 ? $images->find_all() : FALSE;
+        return $images->copy()->count_all() > 0 ? $images->find_all() : FALSE;
     }
 
     //////////////////
