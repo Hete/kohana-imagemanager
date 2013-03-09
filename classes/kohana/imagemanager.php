@@ -143,7 +143,7 @@ class Kohana_ImageManager {
             throw $validation_exception;
         }
 
-        return $images->copy()->count_all() > 0 ? $images->find_all() : FALSE;
+        return $images->find_all();
     }
 
     //////////////////
