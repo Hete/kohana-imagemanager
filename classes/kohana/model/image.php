@@ -84,6 +84,8 @@ class Kohana_Model_Image extends ORM {
         return array(
             "hash" => array(
                 array("not_empty"),
+                array("alpha_numeric"),
+                array("exact_length", array(":value", 40))
             ),
         );
     }
