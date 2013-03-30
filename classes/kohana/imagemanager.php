@@ -52,6 +52,7 @@ class Kohana_ImageManager {
 
     /**
      * Store an image data on hard drive and database.
+     * 
      * @param array $file  
      * @throws ORM_Validation_Exception you must catch that exception.
      * @return Model_Image the corresponding ORM model for this image.
@@ -72,7 +73,7 @@ class Kohana_ImageManager {
             $image->save(Model_Image::get_image_file_validation($file, $max_width, $max_height, $exact, $max_size));
         } catch (ORM_Validation_Exception $ove) {
             throw $ove;
-        }
+        }        
 
         if (!Upload::save($file, $hash, $this->config("base_path"))) {
             // Corrupted download!
