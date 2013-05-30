@@ -108,25 +108,14 @@ class Kohana_ImageManager {
             }
         }
 
-        // No images uploaded
-        if (!Valid::not_empty($files)) {
-            return ORM::factory("image", NULL);
-        }
-
-        // On construit un array qu'on valide avec la classe Upload
-        $images = ORM::factory("image");
-
-        $images->where_open();
-
         $validation_exception = NULL;
+
+        $images = array();
 
         foreach ($files as $file) {
 
             try {
-
-                $image = $this->store($file, $max_width, $max_height, $exact, $max_size);
-
-                $images->or_where("id", "=", $image->pk());
+                $images[] = $this->store($file, $max_width, $max_height, $exact, $max_size);
             } catch (ORM_Validation_Exception $ove) {
                 if ($validation_exception === NULL) {
                     $validation_exception = $ove;
@@ -136,14 +125,12 @@ class Kohana_ImageManager {
             }
         }
 
-        $images->where_close();
-
         // Throw the merged exception
         if ($validation_exception !== NULL) {
             throw $validation_exception;
         }
 
-        return $images->find_all();
+        return $images;
     }
 
     //////////////////
